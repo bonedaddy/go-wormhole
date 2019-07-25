@@ -16,12 +16,31 @@ type Pong struct {
 	Pong int `json:"pong"`
 }
 
+//WelcomeInfo wraps up the welcome information
+//for servers to respond to clients with.
+//This is JSON encoded so the type is provided
+//for convenience.
+type WelcomeInfo struct {
+	//MOTD Message Of The Day. Will be displayed
+	//to connecting clients when received
+	MOTD *string `json:"motd,omitempty"`
+
+	//Error displays an error message to clients
+	//on connection and they will close immediately.
+	//Used to anounce service termination
+	Error *string `json:"error,omitempty"`
+
+	//Version advertises a new CLI client version to
+	//the clients
+	Version *string `json:"current_cli_version,omitempty"`
+}
+
 //Welcome used for the server to introduce itself to clients
 //when they connect
 type Welcome struct {
 	*Message
 
-	Welcome map[string]string `json:"welcome"`
+	Info WelcomeInfo `json:"welcome"`
 }
 
 //Nameplates is the server response to a clients
