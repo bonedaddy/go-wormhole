@@ -23,8 +23,7 @@ func (m Message) GetType() Type {
 //with the type filled in
 func NewMessage(mt Type) *Message {
 	return &Message{
-		Type:       mt,
-		ServerTime: NewUnixTime(),
+		Type: mt,
 	}
 }
 
@@ -32,6 +31,7 @@ func NewMessage(mt Type) *Message {
 //with the type and server time filled in
 func NewServerMessage(mt Type) *Message {
 	return &Message{
-		Type: mt,
+		Type:       mt,
+		ServerTime: NewUnixTime(),
 	}
 }
