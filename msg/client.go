@@ -1,0 +1,92 @@
+package msg
+
+import "encoding/json"
+
+//Ping is a protocol specific
+//ping/pong test from client to server.
+//Ping is sent from client
+type Ping struct {
+	*Message
+	Ping int `json:"ping"`
+}
+
+func (m *Ping) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//Bind allows the client to declare itself to the server
+//and should be the first message the client sends. No other
+//client messages will be accepted until this one is received.
+type Bind struct {
+	*Message
+
+	AppID string `json:"appid"`
+	Side  string `json:"side"`
+}
+
+//List is a request from the client to have the server
+//reply with the available nameplates. The server may deny
+//this request. The server fulfills this with the Nameplates
+type List struct {
+	*Message
+}
+
+//Allocate is the client asking for a nameplate
+//to be reserved for them to use. The server should
+//respond with an Allocated response
+type Allocate struct {
+	*Message
+}
+
+//Claim allows the client to reserve an arbitrary
+//nameplate of their choosing (given it is available)
+type Claim struct {
+	*Message
+
+	Nameplate string `json:"nameplate"`
+}
+
+//Release tells the server that the client is done
+//with their nameplate/mailbox. The Nameplate field
+//is optional, but should match the same one from
+//Claim, or what is allocated to the client.
+type Release struct {
+	*Message
+
+	Nameplate string `json:"nameplate"` //optional
+}
+
+//Open binds the client to a mailbox.
+//Can only be called once per connection.
+//After this point, old messages are transmited
+//as well as listening for updates to the mailbox
+//in which it will push new ones to the client
+type Open struct {
+	*Message
+
+	Mailbox string `json:"mailbox"`
+}
+
+//Add tells the server to add a message
+//to the mailbox for retrieval later.
+//The body portion is hex encoded.
+type Add struct {
+	*Message
+
+	Phase string `json:"phase"`
+	Body  string `json:"body"` //hex encoded
+}
+
+//Close tells the server that the client
+//is closing, or terminating it's binding to
+//the mailbox. It does not release the mailbox.
+type Close struct {
+	*Message
+
+	Mood    string `json:"mood"`
+	Mailbox string `json:"mailbox"` //optional
+}
