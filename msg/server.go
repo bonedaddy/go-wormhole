@@ -98,6 +98,6 @@ type Closed struct {
 type Error struct {
 	*Message
 
-	Error string      `json:"error"`
-	Orig  interface{} `json:"orig"` //original message
+	Error string `json:"error"`
+	Orig  Echo   `json:"orig"` //original message
 }

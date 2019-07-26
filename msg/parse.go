@@ -34,7 +34,11 @@ func ParseClient(src []byte) (Type, IMessage, error) {
 
 	switch mt {
 	case TypePing:
-		msg := Ping{Message: NewServerMessage(TypePing)}
+		msg := Ping{Message: NewMessage(TypePing)}
+		err = msg.parse(src)
+		return mt, msg, nil
+	case TypeBind:
+		msg := Bind{Message: NewMessage(TypeBind)}
 		err = msg.parse(src)
 		return mt, msg, nil
 	}

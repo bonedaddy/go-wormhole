@@ -28,6 +28,14 @@ type Bind struct {
 	Side  string `json:"side"`
 }
 
+func (m *Bind) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //List is a request from the client to have the server
 //reply with the available nameplates. The server may deny
 //this request. The server fulfills this with the Nameplates

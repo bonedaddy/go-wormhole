@@ -5,6 +5,8 @@ import "errors"
 //Common error types, these are copied
 //from the python version directly
 var (
+	ErrInternal = errors.New("internal server error")
+
 	ErrMissingType = errors.New("missing 'type'")
 	ErrUnknownType = errors.New("unknown type")
 	ErrPing        = errors.New("ping requires 'ping'")
