@@ -43,11 +43,27 @@ type List struct {
 	*Message
 }
 
+func (m *List) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //Allocate is the client asking for a nameplate
 //to be reserved for them to use. The server should
 //respond with an Allocated response
 type Allocate struct {
 	*Message
+}
+
+func (m *Allocate) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //Claim allows the client to reserve an arbitrary

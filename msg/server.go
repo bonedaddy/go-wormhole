@@ -49,7 +49,13 @@ type Welcome struct {
 type Nameplates struct {
 	*Message
 
-	Nameplates []interface{} `json:"nameplates"`
+	Nameplates []NameplateEntry `json:"nameplates"`
+}
+
+//NameplateEntry is an individual entry in the
+//nameplate response, identified by it's ID
+type NameplateEntry struct {
+	ID string `json:"id"`
 }
 
 //Allocated server response to the Allocate.

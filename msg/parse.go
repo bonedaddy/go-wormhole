@@ -41,8 +41,18 @@ func ParseClient(src []byte) (Type, IMessage, error) {
 		msg := Bind{Message: NewMessage(TypeBind)}
 		err = msg.parse(src)
 		return mt, msg, nil
+	case TypeList:
+		msg := List{Message: NewMessage(TypeList)}
+		err = msg.parse(src)
+		return mt, msg, nil
+	case TypeAllocate:
+		msg := Allocate{Message: NewMessage(TypeAllocate)}
+		err = msg.parse(src)
+		return mt, msg, nil
+	default:
+		return mt, *NewMessage(TypeUnknown), ErrUnknown
 	}
-	return mt, *NewMessage(TypeUnknown), ErrUnknown
+
 }
 
 //ParseServer attempts to coerce an incoming json message

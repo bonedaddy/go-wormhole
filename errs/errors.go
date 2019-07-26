@@ -15,4 +15,8 @@ var (
 	ErrBound     = errors.New("already bound")
 	ErrBindAppID = errors.New("bind requires 'appid'")
 	ErrBindSide  = errors.New("bind requires 'side'")
+
+	ErrAlreadyAllocated = errors.New("you already allocated one, don't be greedy")
+	ErrNameplateCrowded = errors.New("nameplate crowded")
+	ErrMailboxCrowded = errors.New("mailbox crowded")
 )
