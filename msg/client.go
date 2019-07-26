@@ -142,7 +142,7 @@ func (m *Add) parse(src []byte) error {
 type Close struct {
 	*Message
 
-	Mood    string `json:"mood"`
+	Mood    string `json:"mood"` //not sure what these values are actually
 	Mailbox string `json:"mailbox"` //optional
 }
 func (m *Close) parse(src []byte) error {
