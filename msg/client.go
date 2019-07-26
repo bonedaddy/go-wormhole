@@ -74,6 +74,14 @@ type Claim struct {
 	Nameplate string `json:"nameplate"`
 }
 
+func (m *Claim) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //Release tells the server that the client is done
 //with their nameplate/mailbox. The Nameplate field
 //is optional, but should match the same one from
