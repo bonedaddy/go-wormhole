@@ -110,6 +110,13 @@ type Open struct {
 
 	Mailbox string `json:"mailbox"`
 }
+func (m *Open) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 //Add tells the server to add a message
 //to the mailbox for retrieval later.

@@ -44,6 +44,9 @@ var (
 	ErrReleaseNameplate = New("release and claim must use same nameplate")
 	ErrReleaseNotClaimed = New("release without nameplate must follow claim")
 
+	ErrAlreadyOpened = New("only one open per connection")
+	ErrOpenMailbox = New("open requires 'mailbox'")
+
 	ErrNameplateCrowded = New("nameplate crowded")
 	ErrReclaimNameplate = New("you cannot re-claim a nameplate that your side previously released")
 	ErrMailboxCrowded = New("mailbox crowded")
