@@ -124,8 +124,16 @@ func (m *Open) parse(src []byte) error {
 type Add struct {
 	*Message
 
+	ID string `json:"id"`
 	Phase string `json:"phase"`
 	Body  string `json:"body"` //hex encoded
+}
+func (m *Add) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //Close tells the server that the client
@@ -136,4 +144,11 @@ type Close struct {
 
 	Mood    string `json:"mood"`
 	Mailbox string `json:"mailbox"` //optional
+}
+func (m *Close) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }

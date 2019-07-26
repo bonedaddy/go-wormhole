@@ -46,6 +46,9 @@ var (
 
 	ErrAlreadyOpened = New("only one open per connection")
 	ErrOpenMailbox = New("open requires 'mailbox'")
+	ErrOpenFirst = New("must open mailbox before adding")
+	ErrAddPhase = New("missing 'phase'")
+	ErrAddBody = New("missing 'body'")
 
 	ErrNameplateCrowded = New("nameplate crowded")
 	ErrReclaimNameplate = New("you cannot re-claim a nameplate that your side previously released")
