@@ -1,4 +1,4 @@
-# Magic Wormhole
+# Magic Wormhole - WORK IN PROGRESS
 
 Safely transfer files, or text, from one device to another (peer-to-peer) without the need for third-party accounts or custom servers. Clients can transfer media between devices (directly if possible) using encryption based on mutually shared passwords. The passwords are called "wormhole codes", and are simple phrases made up of two or more words (and a small channel number). Each client, or side of the connection, must enter the same code in order to safely establish a communication channel. Magic Wormhole does not facilitate this code sharing, so it's up to the sending client to notify the receiver of the code. Because of this fact, the security of the transfer can be of the upmost quality.
 
