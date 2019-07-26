@@ -53,6 +53,10 @@ func ParseClient(src []byte) (Type, IMessage, error) {
 		msg := Claim{Message: NewMessage(TypeClaim)}
 		err = msg.parse(src)
 		return mt, msg, nil
+	case TypeRelease:
+		msg := Release{Message: NewMessage(TypeRelease)}
+		err = msg.parse(src)
+		return mt, msg, nil
 	default:
 		return mt, *NewMessage(TypeUnknown), ErrUnknown
 	}

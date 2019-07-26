@@ -39,8 +39,11 @@ var (
 
 	ErrAlreadyAllocated = New("you already allocated one, don't be greedy")
 	ErrAlreadyClaimed = New("only one claim per connection")
+	ErrAlreadyReleased = New("only one release per connection")
 	ErrClaimNameplate = New("claim requires 'nameplate'")
-	
+	ErrReleaseNameplate = New("release and claim must use same nameplate")
+	ErrReleaseNotClaimed = New("release without nameplate must follow claim")
+
 	ErrNameplateCrowded = New("nameplate crowded")
 	ErrReclaimNameplate = New("you cannot re-claim a nameplate that your side previously released")
 	ErrMailboxCrowded = New("mailbox crowded")

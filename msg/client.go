@@ -92,6 +92,14 @@ type Release struct {
 	Nameplate string `json:"nameplate"` //optional
 }
 
+func (m *Release) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //Open binds the client to a mailbox.
 //Can only be called once per connection.
 //After this point, old messages are transmited
