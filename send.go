@@ -148,10 +148,11 @@ func (s *Send) CompileFileManifest(args []string) error {
 
 		if fi.IsDir() {
 			if strings.HasPrefix(fi.Name(), ".") && !s.IncludeHidden {
-				fmt.Printf("skipping hidden folder '%s'\n", fi.Name())
+				verbosef("skipping hidden folder '%s'", fi.Name())
 				continue
 			}
 
+			verbosef("adding directory %s to walk list", fi.Name())
 			dirs = append(dirs, filepath.Clean(fd))
 		} else {
 			absFD, err := filepath.Abs(fd)
@@ -160,6 +161,7 @@ func (s *Send) CompileFileManifest(args []string) error {
 				return err
 			}
 
+			verbosef("added file to list '%s'", fi.Name())
 			files = append(files, FileDesc{
 				LocalPath: absFD,
 				Path:      filepath.Clean(fd),
@@ -173,6 +175,7 @@ func (s *Send) CompileFileManifest(args []string) error {
 	//at the end we should only have the files slice and can disregard
 	//the dirs slice entirely
 	for _, dir := range dirs {
+		verbosef("walking directory %s for files", dir)
 		err := filepath.Walk(dir, func(fd string, fi os.FileInfo, err error) error {
 			//If something went wrong, do we care?
 			if err != nil {
@@ -185,6 +188,7 @@ func (s *Send) CompileFileManifest(args []string) error {
 			if fi.IsDir() == false {
 				//Check for hidden
 				if !s.IncludeHidden && hasHiddenFolder(fd) {
+					verbosef("skipping hidden folder")
 					return nil //Skip for hidden
 				}
 
@@ -197,6 +201,7 @@ func (s *Send) CompileFileManifest(args []string) error {
 					return err
 				}
 
+				verbosef("adding file to list '%s'", fi.Name())
 				files = append(files, FileDesc{
 					LocalPath: absFD,
 					Path:      filepath.Clean(fd),
@@ -242,7 +247,7 @@ func normalizePath(files *[]FileDesc) {
 		dir, _ := filepath.Split(fd.LocalPath)
 		subdirs := strings.Split(dir, string(os.PathSeparator))
 		if len(subdirs) == 0 {
-			fmt.Printf("file path is at root %s\n", fd.LocalPath)
+			verbosef("file path is at root %s", fd.LocalPath)
 			smallestDir = smallestDir[:0]
 			break //The smallest is just zero or empty
 		}
@@ -272,18 +277,18 @@ func normalizePath(files *[]FileDesc) {
 			smallestDir = smallestDir[:0]
 			break
 		} else if ind < len(smallestDir)-1 {
-			fmt.Printf("trimming smallest %v -> %v\n", smallestDir, smallestDir[:ind])
+			verbosef("trimming smallest %v -> %v", smallestDir, smallestDir[:ind])
 			smallestDir = smallestDir[:ind] //Trim down
 		}
 	}
 
 	smallDir := strings.Join(smallestDir, string(os.PathSeparator))
-	fmt.Printf("found smallest common directory '%s'\n", smallDir)
+	verbosef("found smallest common directory '%s'", smallDir)
 	//Trim down the paths to the smallest common now
 	for i := range *files {
 		(*files)[i].Path = (*files)[i].LocalPath[len(smallDir):]
 
-		fmt.Printf("final path: %s -> %s\n", (*files)[i].LocalPath, (*files)[i].Path)
+		verbosef("final path: %s -> %s", (*files)[i].LocalPath, (*files)[i].Path)
 	}
 }
 
@@ -299,7 +304,7 @@ func (s *Send) ComputeChecksums() error {
 			fmt.Printf("failed to compute checksum for file %s\n", path)
 			return err
 		}
-		fmt.Printf("checksum computed for '%s' = %s\n", path, hash)
+		verbosef("checksum computed for '%s' = %s", path, hash)
 
 		fd.Checksum = hash
 	}

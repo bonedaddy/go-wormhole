@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -25,6 +26,7 @@ const (
 )
 
 var app *cli.App
+var isVerbose bool
 
 func main() {
 	app = cli.NewApp()
@@ -62,6 +64,11 @@ func main() {
 			Name:  "appid, a",
 			Value: defAppID,
 			Usage: "sets the `APPID` to use",
+		},
+		cli.BoolFlag{
+			Name:        "verbose, V",
+			Usage:       "output verbose information",
+			Destination: &isVerbose,
 		},
 	}
 
@@ -219,13 +226,17 @@ func main() {
 
 func runCommandSend(c *cli.Context) error {
 	cmd := newSendFromCLI(c)
-	fmt.Printf("sending %+v\n\n", cmd)
 
 	if c.Args().Present() {
 		cmd.CompileFileManifest(c.Args())
+
 		if err := cmd.ComputeChecksums(); err != nil {
 			fmt.Printf("Failed to compute checksum of files!\n")
 		}
+
+		codeWords := GetRandomWords(cmd.CodeLength)
+		code := strings.Join(codeWords, "-")
+		fmt.Printf("\nWORMHOLE CODE = %s\n", code)
 	} else {
 		fmt.Print("Must supply files, or directories, to send\n\n")
 		cli.ShowAppHelpAndExit(c, 1)
@@ -237,7 +248,7 @@ func runCommandSend(c *cli.Context) error {
 
 func runCommandSendFiles(c *cli.Context) error {
 	cmd := newSendFromCLI(c)
-	fmt.Printf("sending %+v\n\n", cmd)
+	fmt.Printf("%v\n", cmd)
 
 	if c.Args().Present() {
 		for i, a := range c.Args() {
@@ -250,7 +261,7 @@ func runCommandSendFiles(c *cli.Context) error {
 
 func runCommandSendDirectory(c *cli.Context) error {
 	cmd := newSendFromCLI(c)
-	fmt.Printf("sending %+v\n\n", cmd)
+	fmt.Printf("%v\n", cmd)
 
 	if c.Args().Present() {
 		for i, a := range c.Args() {
@@ -263,7 +274,7 @@ func runCommandSendDirectory(c *cli.Context) error {
 
 func runCommandSendText(c *cli.Context) error {
 	cmd := newSendFromCLI(c)
-	fmt.Printf("sending %+v\n\n", cmd)
+	fmt.Printf("%v\n", cmd)
 
 	if c.Args().Present() {
 		for i, a := range c.Args() {
