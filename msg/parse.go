@@ -86,7 +86,46 @@ func ParseServer(src []byte) (Type, IMessage, error) {
 	}
 
 	switch mt {
-
+	case TypeAck:
+		msg := Ack{Message: NewMessage(TypeAck)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypePong:
+		msg := Pong{Message: NewMessage(TypePong)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeWelcome:
+		msg := Welcome{Message: NewMessage(TypeWelcome)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeNameplates:
+		msg := Nameplates{Message: NewMessage(TypeNameplates)}
+		err = msg.parse(src)
+		return mt, msg, nil
+	case TypeAllocated:
+		msg := Allocated{Message: NewMessage(TypeAllocated)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeClaimed:
+		msg := Claimed{Message: NewMessage(TypeClaimed)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeReleased:
+		msg := Released{Message: NewMessage(TypeReleased)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeMessage:
+		msg := MailboxMessage{Message: NewMessage(TypeMessage)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeClosed:
+		msg := Closed{Message: NewMessage(TypeClosed)}
+		err = msg.parse(src)
+		return mt, msg, nil	
+	case TypeError:
+		msg := Error{Message: NewMessage(TypeError)}
+		err = msg.parse(src)
+		return mt, msg, nil	
 	}
 	return mt, *NewMessage(TypeUnknown), ErrUnknown
 }

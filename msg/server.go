@@ -1,11 +1,22 @@
 package msg
 
+import (
+	"encoding/json"
+)
+
 //Ack is a server echo response that a
 //command message was received
 type Ack struct {
 	*Message
 
-	ID int `json:"id"`
+	ID string `json:"id"`
+}
+func (m *Ack) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //Pong is a protocol specific
@@ -14,6 +25,13 @@ type Ack struct {
 type Pong struct {
 	*Message
 	Pong int `json:"pong"`
+}
+func (m *Pong) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //WelcomeInfo wraps up the welcome information
@@ -42,6 +60,13 @@ type Welcome struct {
 
 	Info WelcomeInfo `json:"welcome"`
 }
+func (m *Welcome) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 //Nameplates is the server response to a clients
 //list request (List), and responds with the available
@@ -50,6 +75,13 @@ type Nameplates struct {
 	*Message
 
 	Nameplates []NameplateEntry `json:"nameplates"`
+}
+func (m *Nameplates) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //NameplateEntry is an individual entry in the
@@ -65,6 +97,13 @@ type Allocated struct {
 
 	Nameplate string `json:"nameplate"`
 }
+func (m *Allocated) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 //Claimed is the server response to the Claim
 //responding with the claimed mailbox
@@ -73,12 +112,26 @@ type Claimed struct {
 
 	Mailbox string `json:"mailbox"`
 }
+func (m *Claimed) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 //Released is the servers confirmation that
 //it has released the clients nameplate/mailbox
 //as instructed from the Release
 type Released struct {
 	*Message
+}
+func (m *Released) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //MailboxMessage is the server pushing a mailbox
@@ -92,11 +145,25 @@ type MailboxMessage struct {
 	Body  string `json:"body"` //hex encoded
 	MsgID string `json:"msg_id"`
 }
+func (m *MailboxMessage) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 //Closed confirms to the client that
 //the server has closed their mailbox binding
 type Closed struct {
 	*Message
+}
+func (m *Closed) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //Error is a server response to errors
@@ -106,4 +173,11 @@ type Error struct {
 
 	Error string `json:"error"`
 	Orig  Echo   `json:"orig"` //original message
+}
+func (m *Error) parse(src []byte) error {
+	err := json.Unmarshal(src, m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
