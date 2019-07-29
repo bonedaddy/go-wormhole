@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/chris-pikul/go-wormhole/words"
 	"github.com/urfave/cli"
 )
 
@@ -131,38 +132,6 @@ func main() {
 					},
 				},
 				cli.Command{
-					Name:      "directory",
-					ShortName: "d",
-					Aliases:   []string{"directories", "dir"},
-					Usage:     "send files recursively from directory",
-					Action:    runCommandSendDirectory,
-
-					Flags: []cli.Flag{
-						cli.UintFlag{
-							Name:  "code-length, c",
-							Value: defCodeLen,
-							Usage: "set custom code `length`, or number of password parts",
-						},
-						cli.BoolFlag{
-							Name:  "verify, v",
-							Usage: "use extra verification prompt (and wait for approval)",
-						},
-						cli.StringFlag{
-							Name:  "code",
-							Usage: "optional `CODE` to use instead of system generated one (dangerous)",
-						},
-
-						cli.BoolFlag{
-							Name:  "ignore-bad-files, i",
-							Usage: "ignore any files that are unable to be read",
-						},
-						cli.BoolFlag{
-							Name:  "include-hidden",
-							Usage: "include hidden folders and files by unix dot prefix",
-						},
-					},
-				},
-				cli.Command{
 					Name:      "text",
 					ShortName: "t",
 					Aliases:   []string{"txt", "string"},
@@ -227,39 +196,26 @@ func main() {
 func runCommandSend(c *cli.Context) error {
 	cmd := newSendFromCLI(c)
 
-	if c.Args().Present() {
-		cmd.CompileFileManifest(c.Args())
-
-		if err := cmd.ComputeChecksums(); err != nil {
-			fmt.Printf("Failed to compute checksum of files!\n")
-		}
-
-		codeWords := GetRandomWords(cmd.CodeLength)
-		code := strings.Join(codeWords, "-")
-		fmt.Printf("\nWORMHOLE CODE = %s\n", code)
-	} else {
+	if !c.Args().Present() {
 		fmt.Print("Must supply files, or directories, to send\n\n")
 		cli.ShowAppHelpAndExit(c, 1)
 		return nil
 	}
 
+	cmd.CompileFileManifest(c.Args())
+
+	if err := cmd.ComputeChecksums(); err != nil {
+		fmt.Printf("Failed to compute checksum of files!\n")
+	}
+
+	codeWords := words.GetRandomWords(cmd.CodeLength)
+	code := strings.ToLower(strings.Join(codeWords, "-"))
+	fmt.Printf("\nWORMHOLE CODE = %s\n", code)
+
 	return nil
 }
 
 func runCommandSendFiles(c *cli.Context) error {
-	cmd := newSendFromCLI(c)
-	fmt.Printf("%v\n", cmd)
-
-	if c.Args().Present() {
-		for i, a := range c.Args() {
-			fmt.Printf("argument: %d %q\n", i, a)
-		}
-	}
-
-	return nil
-}
-
-func runCommandSendDirectory(c *cli.Context) error {
 	cmd := newSendFromCLI(c)
 	fmt.Printf("%v\n", cmd)
 
