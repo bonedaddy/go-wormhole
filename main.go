@@ -10,9 +10,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/chris-pikul/go-wormhole/words"
 	"github.com/urfave/cli"
 )
 
@@ -20,8 +18,8 @@ const (
 	//Version holds the CLI application version
 	Version = "0.1.0"
 
-	defRelay   = "locahost:4000"
-	defTransit = "locahost:4001"
+	defRelay   = "ws://localhost:4000/v1"
+	defTransit = "localhost:4001"
 	defAppID   = "wormhole"
 	defCodeLen = 2
 )
@@ -208,9 +206,10 @@ func runCommandSend(c *cli.Context) error {
 		fmt.Printf("Failed to compute checksum of files!\n")
 	}
 
-	codeWords := words.GetRandomWords(cmd.CodeLength)
-	code := strings.ToLower(strings.Join(codeWords, "-"))
-	fmt.Printf("\nWORMHOLE CODE = %s\n", code)
+	err := cmd.Open()
+	if err != nil {
+		return nil //Handled and printed already
+	}
 
 	return nil
 }

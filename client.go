@@ -1,5 +1,18 @@
 package main
 
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/chris-pikul/go-wormhole/errs"
+	"github.com/chris-pikul/go-wormhole/msg"
+
+	"github.com/urfave/cli"
+	"github.com/gorilla/websocket"
+)
+
 //Client interfaces with the relay server
 //and performs the entire protocol for
 //sending/receiving media. It is "extended"
@@ -15,7 +28,200 @@ type Client struct {
 	//receiver in their own way
 	Code string
 
+	//Side is a randomly generated hexidecimal string
+	//that identifies ourselves hopefully uniquely.
+	//I'm disapointed it took me so long to find
+	//where this came from in the original code.
+	Side string
+
 	//Manifest contains the list of files/directories
 	//we are intending to send/receive.
 	Manifest []FileDesc
+
+	socketConn *websocket.Conn
+
+	allocated bool
+	opened bool
+
+	nameplate string
+	mailbox string
+
+	onReady func()error
+	onClaimed func(string)error
+	onMessage func(msg.MailboxMessage)error
+}
+
+//NewClient returns a new loosely initialized Client object
+func NewClient() Client {
+	return Client{
+		Side: RandomCode(5),
+	}
+}
+
+func newClientFromCLI(c *cli.Context) *Client {
+	return &Client{
+		RelayAddress:   c.GlobalString("relay"),
+		TransitAddress: c.GlobalString("transit"),
+		AppID:          c.GlobalString("appid"),
+
+		Code: c.String("code"),
+
+		Side: RandomCode(5),
+	}
+}
+
+//Open performs the dialing procedure for connecting
+//between the clients. This is the start, and eventually
+//end of the entire process. The sending/receiving
+//variations of this type are expected to implement
+//the further steps after the connection is opened
+func (c *Client) Open() error {
+
+	dialer := websocket.Dialer{
+		HandshakeTimeout:  time.Second * 30,
+		ReadBufferSize:    1024,
+		WriteBufferSize:   1024,
+		EnableCompression: true,
+	}
+
+	verbosef("dialing rendevzous service @ %s", c.RelayAddress)
+	conn, resp, err := dialer.Dial(c.RelayAddress, http.Header{})
+	if err != nil {
+		fmt.Printf("error dialing the rendevzous service:\n\t%s\n", err.Error())
+		return err
+	}
+	defer c.Close()
+
+	verbosef("\t%d %s", resp.StatusCode, resp.Status)
+	verbosef("\tprotocol = %s", resp.Proto)
+
+	c.socketConn = conn
+
+	for {
+		_, data, err := c.socketConn.ReadMessage()
+		if err != nil {
+			fmt.Printf("error communicating with rendevzous service:\n\t%s\n", err.Error())
+			return err
+		}
+
+		mt, msgi, err := msg.ParseServer(data)
+		if err != nil {
+			fmt.Printf("error trying to understand relay service:\n\t%s\n", err.Error())
+			return err
+		}
+		verbosef("received server message '%s'", mt.String())
+
+		var e error
+		switch mt {
+		case msg.TypeAck:
+			cmd := msgi.(msg.Ack)
+			e = c.handleAck(cmd)
+		case msg.TypeError:
+			cmd := msgi.(msg.Error)
+			e = c.handleError(cmd)
+
+		case msg.TypeWelcome:
+			cmd := msgi.(msg.Welcome)
+			e = c.handleWelcome(cmd)
+		case msg.TypeAllocated:
+			cmd := msgi.(msg.Allocated)
+			e = c.handleAllocated(cmd)
+		case msg.TypeClaimed:
+			cmd := msgi.(msg.Claimed)
+			e = c.handleClaimed(cmd)
+		case msg.TypeMessage:
+			cmd := msgi.(msg.MailboxMessage)
+			e = c.handleMailboxMessage(cmd)
+		
+		default:
+			e = fmt.Errorf("unknown command type %s", mt.String())
+		}
+
+		if e != nil {
+			return e
+		}
+	}
+
+	return nil
+}
+
+//Close closes the socket connection the client may have open
+func (c *Client) Close() {
+	if c.socketConn != nil {
+		c.socketConn.Close()
+		c.socketConn = nil
+	}
+}
+
+func (c *Client) handleAck(cmd msg.Ack) error {
+	verbosef("server acknowledged command %s", cmd.ID)
+	return nil
+}
+
+func (c *Client) handleError(cmd msg.Error) error {
+	verbosef("server sent error %s", cmd.Error)
+
+	if cmd.Error == errs.ErrInternal.Error() {
+		fmt.Println("an error occured on the server's side, please try again later")
+	} else {
+		fmt.Printf("\nERROR: %s\n\n", cmd.Error)
+	}
+
+	return errs.ErrInternal
+}
+
+func (c *Client) handleWelcome(cmd msg.Welcome) error {
+	if cmd.Info.Error != nil {
+		fmt.Println(*cmd.Info.Error)
+		return errors.New("service welcome error")
+	} else if cmd.Info.MOTD != nil {
+		fmt.Print("\n")
+		fmt.Println(*cmd.Info.MOTD)
+		fmt.Print("\n")
+	}
+
+	if cmd.Info.Version != nil {
+		//TODO: Compare this against this CLI version
+		fmt.Printf("New client version %s is now available!\n\n", *cmd.Info.Version)
+	}
+
+	//send back the bind
+	c.socketConn.WriteJSON(msg.Bind{
+		Message: msg.NewMessage(msg.TypeBind),
+		AppID: c.AppID,
+		Side: c.Side,
+	})
+
+	return c.onReady()
+}
+
+func (c *Client) handleAllocated(cmd msg.Allocated) error {
+	verbosef("server allocated us the nameplate '%s'", cmd.Nameplate)
+
+	c.allocated = true
+	c.nameplate = cmd.Nameplate
+
+	//claim right away
+	c.socketConn.WriteJSON(msg.Claim{
+		Message: msg.NewMessage(msg.TypeClaim),
+		Nameplate: c.nameplate,
+	})
+
+	return nil
+}
+
+func (c *Client) handleClaimed(cmd msg.Claimed) error {
+	c.mailbox = cmd.Mailbox
+
+	//open right away
+	c.socketConn.WriteJSON(msg.Open{
+		Message: msg.NewMessage(msg.TypeOpen),
+		Mailbox: c.mailbox,
+	})
+
+	return c.onClaimed(c.mailbox)
+}
+
+func (c *Client) handleMailboxMessage(cmd msg.MailboxMessage) error {
+	return c.onMessage(cmd)
 }

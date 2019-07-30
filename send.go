@@ -74,7 +74,7 @@ type FileDesc struct {
 //is set to SendModeFile meaning it's expected
 //to send files/directories
 func NewClientSend() ClientSend {
-	return ClientSend{
+	c := ClientSend{
 		Client: &Client{
 			RelayAddress:   defRelay,
 			TransitAddress: defTransit,
@@ -87,19 +87,20 @@ func NewClientSend() ClientSend {
 		IncludeHidden: false,
 		Mode:          SendModeFile,
 	}
+
+	c.onReady = c.handleReady
+	c.onClaimed = c.handleClaimed
+	c.onMessage = c.handleMessage
+
+	return c
 }
 
 //newSendFromCLI creates a new send object and fills
 //it with the options from the CLI context
 func newSendFromCLI(c *cli.Context) ClientSend {
 	s := ClientSend{
-		Client: &Client{
-			RelayAddress:   c.GlobalString("relay"),
-			TransitAddress: c.GlobalString("transit"),
-			AppID:          c.GlobalString("appid"),
+		Client: newClientFromCLI(c),
 
-			Code: c.String("code"),
-		},
 		CodeLength:    int(c.Uint("code-length")),
 		Verify:        c.Bool("verify"),
 		IgnoreBad:     c.Bool("ignore-bad-files"),
@@ -111,6 +112,10 @@ func newSendFromCLI(c *cli.Context) ClientSend {
 	} else if c.Command.HasName("text") {
 		s.Mode = SendModeText
 	}
+
+	s.onReady = s.handleReady
+	s.onClaimed = s.handleClaimed
+	s.onMessage = s.handleMessage
 
 	return s
 }

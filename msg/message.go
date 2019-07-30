@@ -46,7 +46,7 @@ func NewMessage(mt Type) *Message {
 	_, err := rand.Read(idBytes)
 	if err == nil {
 		//Ignore I suppose?
-		id = hex.EncodeToString(idBytes)
+		id = hex.EncodeToString(idBytes)[:6]
 	} else {
 		//Ignore I suppose?
 		id = fmt.Sprintf("%x", time.Now().Unix())
